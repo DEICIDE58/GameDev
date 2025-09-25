@@ -1,0 +1,48 @@
+.game-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.game {
+  position: relative;
+  width: 400px;
+  height: 200px;   /* only 2–3 lines visible */
+  border: 3px solid black;
+  overflow: hidden;
+  background: white;
+  transition: transform 0.5s ease;
+}
+
+.world {
+  position: relative;
+  width: 100%;
+  height: 650px; /* added extra bottom space */
+  padding-bottom: 50px; /* buffer so feet show */
+}
+
+
+/* Player & Guards */
+.player, .guard {
+  position: absolute;
+  width: 30px;   
+  height: auto;  /* full body visible */
+}
+
+.player {
+  left: 180px;
+  top: 560px;
+}
+
+.line {
+  position: absolute;
+  width: 100%;
+  height: 20px;
+  background: black;
+}
+
+/* When game starts, make it much bigger */
+.zoomed {
+  transform: scale(2);   /* bigger than before */
+  transform-origin: center top;  /* expand downward, not over score */
+}

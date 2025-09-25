@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patentero Game</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body onload="initGame()">
+  <h2 style="text-align:center;">Patentero 🏃‍♂️ vs 👮</h2>
+  <h3 id="scoreBoard" style="text-align:center;">Score: 0</h3>
+
+  <div class="game-wrapper">
+    <div class="game" id="game">
+      <div class="world" id="world">
+          <!-- Lines -->
+          <div class="line" style="top:100px;"></div>
+          <div class="line" style="top:200px;"></div>
+          <div class="line" style="top:300px;"></div>
+          <div class="line" style="top:400px;"></div>
+          <div class="line" style="top:500px;"></div>
+
+          <img src="images/player.png" alt="Player" id="player" class="player">
+
+          <img src="images/guard.png" alt="Guard" class="guard" style="top:57px; left:50px;">
+          <img src="images/guard.png" alt="Guard" class="guard" style="top:157px; left:150px;">
+          <img src="images/guard.png" alt="Guard" class="guard" style="top:257px; left:250px;">
+          <img src="images/guard.png" alt="Guard" class="guard" style="top:357px; left:100px;">
+          <img src="images/guard.png" alt="Guard" class="guard" style="top:457px; left:200px;">
+      </div>
+    </div>
+  </div>
+
+  <div style="text-align:center; margin-top:10px;">
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
