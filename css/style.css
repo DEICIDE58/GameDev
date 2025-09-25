@@ -17,10 +17,9 @@
 .world {
   position: relative;
   width: 100%;
-  height: 650px; /* added extra bottom space */
-  padding-bottom: 50px; /* buffer so feet show */
+  height: 850px; /* total world height */
+  padding-bottom: 50px;
 }
-
 
 /* Player & Guards */
 .player, .guard {
@@ -41,8 +40,26 @@
   background: black;
 }
 
-/* When game starts, make it much bigger */
+/* Zones */
+.zone {
+  position: absolute;
+  width: 100%;
+  height: 20px;
+  z-index: 1;
+}
+
+.start-end {
+  background: rgba(0, 0, 255, 0.3);
+  border: 2px dashed blue;
+}
+
+.checkpoint {
+  background: rgba(255, 165, 0, 0.3);
+  border: 2px dashed orange;
+}
+
+/* When game starts, make it bigger */
 .zoomed {
-  transform: scale(2);   /* bigger than before */
-  transform-origin: center top;  /* expand downward, not over score */
+  transform: scale(2);   
+  transform-origin: center top;  
 }

@@ -1,36 +1,53 @@
+// -------- DOM ELEMENTS --------
 const game = document.getElementById("game");
 const world = document.getElementById("world");
 const player = document.getElementById("player");
 const guards = document.querySelectorAll(".guard");
 const scoreBoard = document.getElementById("scoreBoard");
 
-let playerX = 180, playerY = 560;
-const step = 20;
+// -------- CONFIGURATION --------
+const step = 20;               // Player movement
+const lineSpacing = 150;       // Distance between lines
+const totalLines = 5;          // Number of lines up
+const guardDirections = [2, -2, 2, -2, 2]; // Guard movement
+
+// -------- GAME VARIABLES --------
+let playerX = 180;
+let playerY;
 let score = 0;
-let lastLineCrossed = Math.floor(playerY / 100);
+let lastLineCrossed;
 let gameRunning = false;
+let goingUp = true; 
+let checkpointReached = false;
 let guardAnimation;
 
 // -------- INIT --------
 function initGame() {
+  playerY = 790; // start at start/end zone
+  lastLineCrossed = totalLines + 1; // above top line for upward trip
+  score = 0;
+  goingUp = true;
+  checkpointReached = false;
+  scoreBoard.textContent = "Score: 0";
   updatePlayerPosition();
   console.log("Game ready. Press Start!");
 }
 
-// -------- START --------
+// -------- START GAME --------
 function startGame() {
   if (gameRunning) return;
   gameRunning = true;
+  playerX = 180;
+  playerY = 790;
+  lastLineCrossed = totalLines + 1; // reset for upward trip
   score = 0;
-  scoreBoard.textContent = "Score: 0";
-  playerX = 180; playerY = 560;
+  goingUp = true;
+  checkpointReached = false;
   updatePlayerPosition();
 
-  // make the game zoom in bigger
   game.classList.add("zoomed");
   moveGuards();
 }
-
 
 // -------- PLAYER MOVEMENT --------
 document.addEventListener("keydown", (e) => {
@@ -56,40 +73,58 @@ function updatePlayerPosition() {
 
 // -------- CAMERA --------
 function updateCamera() {
-  let offset = playerY - 120;
+  let offset = playerY - game.offsetHeight / 2 + player.offsetHeight / 2;
   if (offset < 0) offset = 0;
-
-  // prevent camera from cutting off bottom
-  if (offset > world.offsetHeight - game.offsetHeight - 40) {
-    offset = world.offsetHeight - game.offsetHeight - 40;
-  }
-
+  if (offset > world.offsetHeight - game.offsetHeight) offset = world.offsetHeight - game.offsetHeight;
   world.style.transform = `translateY(-${offset}px)`;
 }
 
-
 // -------- SCORE --------
 function updateScore() {
-  let currentLine = Math.floor(playerY / 100);
-  if (currentLine < lastLineCrossed) {
-    score++;
-    scoreBoard.textContent = "Score: " + score;
-    lastLineCrossed = currentLine;
+  if (goingUp) {
+    // Upward trip: score when passing each line
+    for (let i = totalLines; i >= 1; i--) {
+      let lineTop = i * lineSpacing;
+      if (playerY <= lineTop && lastLineCrossed > i) {
+        score++;
+        scoreBoard.textContent = "Score: " + score;
+        lastLineCrossed = i;
+      }
+    }
+
+    // Checkpoint
+    if (playerY <= 50) checkpointReached = true;
+
+    // Top reached → start downward trip
+    if (playerY <= 50) {
+      goingUp = false;
+      lastLineCrossed = 0; // reset for downward trip
+    }
+
+  } else {
+    // Downward trip: only score if checkpoint reached
+    if (checkpointReached) {
+      for (let i = 1; i <= totalLines; i++) {
+        let lineTop = i * lineSpacing;
+        if (playerY >= lineTop && lastLineCrossed < i) {
+          score++;
+          scoreBoard.textContent = "Score: " + score;
+          lastLineCrossed = i;
+        }
+      }
+    }
   }
 }
 
-// -------- GUARDS --------
-const guardDirections = [2, -2, 2, -2, 2];
-
+// -------- GUARD MOVEMENT --------
 function moveGuards() {
   if (!gameRunning) return;
+
   guards.forEach((guard, index) => {
     let gX = parseInt(guard.style.left);
-
     if (gX >= game.offsetWidth - guard.offsetWidth || gX <= 0) {
       guardDirections[index] *= -1;
     }
-
     guard.style.left = gX + guardDirections[index] + "px";
   });
 
@@ -102,38 +137,30 @@ function checkCollision() {
   const playerWidth = player.offsetWidth;
   const playerHeight = player.offsetHeight;
 
-  
-  player.style.outline = "1px solid blue";   
-
   guards.forEach(guard => {
-    let gX = parseInt(guard.style.left);
-    let gY = parseInt(guard.style.top);
-    let gW = guard.offsetWidth;
-    let gH = guard.offsetHeight;
+    const gX = parseInt(guard.style.left);
+    const gY = parseInt(guard.style.top);
+    const gW = guard.offsetWidth;
+    const gH = guard.offsetHeight;
 
-    // Shrink hitbox for better gameplay
-    let shrinkX = 6;   // small trim left/right
-    let shrinkY = 3;   // small trim top/bottom
-
-    // Debug: show guard hitbox
-    //guard.style.outline = "1px solid red";  
+    const shrinkX = 6;
+    const shrinkY = 3;
 
     if (!(playerX + playerWidth - shrinkX < gX + shrinkX ||
           playerX + shrinkX > gX + gW - shrinkX ||
           playerY + playerHeight - shrinkY < gY + shrinkY ||
           playerY + shrinkY > gY + gH - shrinkY)) {
 
-      alert("You got tagged! Game Over ❌\nFinal Score: " + score);
+      alert(`You got tagged! Game Over ❌\nFinal Score: ${score}`);
       window.location.reload();
     }
   });
 }
 
-
-// -------- WIN --------
+// -------- WIN CONDITION --------
 function checkWin() {
-  if (playerY <= 10) {
-    alert("You Win! 🎉\nFinal Score: " + score);
+  if (!goingUp && checkpointReached && playerY >= 790) {
+    alert(`You Win! 🎉\nFinal Score: ${score}`);
     window.location.reload();
   }
 }
