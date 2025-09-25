@@ -41,6 +41,14 @@
     <button onclick="startGame()">Start Game</button>
   </div>
 
+  <!-- Overlay for Game Over / Win -->
+  <div id="overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <h2 id="overlayMessage"></h2>
+      <button onclick="restartGame()">Restart</button>
+    </div>
+  </div>
+
   <script src="js/script.js"></script>
 </body>
 </html>

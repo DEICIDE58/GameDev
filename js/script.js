@@ -8,8 +8,8 @@ const scoreBoard = document.getElementById("scoreBoard");
 // -------- CONFIGURATION --------
 const step = 20;               // Player movement
 const lineSpacing = 150;       // Distance between lines
-const totalLines = 5;          // Number of lines up
-const guardDirections = [2, -2, 2, -2, 2]; // Guard movement
+const totalLines = 5;          // Number of lines
+const guardDirections = [2, -2, 2, -2, 2]; // Guard movement speeds
 
 // -------- GAME VARIABLES --------
 let playerX = 180;
@@ -23,14 +23,13 @@ let guardAnimation;
 
 // -------- INIT --------
 function initGame() {
-  playerY = 790; // start at start/end zone
-  lastLineCrossed = totalLines + 1; // above top line for upward trip
+  playerY = 790; 
+  lastLineCrossed = totalLines + 1;
   score = 0;
   goingUp = true;
   checkpointReached = false;
   scoreBoard.textContent = "Score: 0";
   updatePlayerPosition();
-  console.log("Game ready. Press Start!");
 }
 
 // -------- START GAME --------
@@ -39,7 +38,7 @@ function startGame() {
   gameRunning = true;
   playerX = 180;
   playerY = 790;
-  lastLineCrossed = totalLines + 1; // reset for upward trip
+  lastLineCrossed = totalLines + 1;
   score = 0;
   goingUp = true;
   checkpointReached = false;
@@ -82,7 +81,6 @@ function updateCamera() {
 // -------- SCORE --------
 function updateScore() {
   if (goingUp) {
-    // Upward trip: score when passing each line
     for (let i = totalLines; i >= 1; i--) {
       let lineTop = i * lineSpacing;
       if (playerY <= lineTop && lastLineCrossed > i) {
@@ -91,18 +89,12 @@ function updateScore() {
         lastLineCrossed = i;
       }
     }
-
-    // Checkpoint
-    if (playerY <= 50) checkpointReached = true;
-
-    // Top reached → start downward trip
     if (playerY <= 50) {
+      checkpointReached = true;
       goingUp = false;
-      lastLineCrossed = 0; // reset for downward trip
+      lastLineCrossed = 0;
     }
-
   } else {
-    // Downward trip: only score if checkpoint reached
     if (checkpointReached) {
       for (let i = 1; i <= totalLines; i++) {
         let lineTop = i * lineSpacing;
@@ -134,8 +126,8 @@ function moveGuards() {
 
 // -------- COLLISION --------
 function checkCollision() {
-  const playerWidth = player.offsetWidth;
-  const playerHeight = player.offsetHeight;
+  const pW = player.offsetWidth;
+  const pH = player.offsetHeight;
 
   guards.forEach(guard => {
     const gX = parseInt(guard.style.left);
@@ -143,16 +135,13 @@ function checkCollision() {
     const gW = guard.offsetWidth;
     const gH = guard.offsetHeight;
 
-    const shrinkX = 6;
-    const shrinkY = 3;
+    const shrinkX = 6, shrinkY = -2;
 
-    if (!(playerX + playerWidth - shrinkX < gX + shrinkX ||
+    if (!(playerX + pW - shrinkX < gX + shrinkX ||
           playerX + shrinkX > gX + gW - shrinkX ||
-          playerY + playerHeight - shrinkY < gY + shrinkY ||
+          playerY + pH - shrinkY < gY + shrinkY ||
           playerY + shrinkY > gY + gH - shrinkY)) {
-
-      alert(`You got tagged! Game Over ❌\nFinal Score: ${score}`);
-      window.location.reload();
+      endGame("❌ You got tagged! Game Over.");
     }
   });
 }
@@ -160,7 +149,21 @@ function checkCollision() {
 // -------- WIN CONDITION --------
 function checkWin() {
   if (!goingUp && checkpointReached && playerY >= 790) {
-    alert(`You Win! 🎉\nFinal Score: ${score}`);
-    window.location.reload();
+    endGame("🎉 You Win!");
   }
+}
+
+// -------- END GAME --------
+function endGame(message) {
+  gameRunning = false;
+  cancelAnimationFrame(guardAnimation);
+  document.getElementById("overlayMessage").textContent = message + ` Final Score: ${score}`;
+  document.getElementById("overlay").classList.remove("hidden");
+}
+
+// -------- RESTART --------
+function restartGame() {
+  document.getElementById("overlay").classList.add("hidden");
+  initGame();
+  startGame();
 }
