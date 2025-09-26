@@ -1,10 +1,8 @@
-// -------- API CONFIG --------
-const API_URL = "https://68d6429fc2a1754b426a1035.mockapi.io/score";
-
 // -------- DOM ELEMENTS --------
 const game = document.getElementById("game");
 const world = document.getElementById("world");
 const player = document.getElementById("player");
+const playerSprite = document.getElementById("playerSprite");
 const guards = document.querySelectorAll(".guard");
 const scoreBoard = document.getElementById("scoreBoard");
 
@@ -24,8 +22,9 @@ let goingUp = true;
 let checkpointReached = false;
 let guardAnimation;
 
-// -------- INIT 
+// -------- INIT --------
 function initGame() {
+  playerX = 180;
   playerY = 790; 
   lastLineCrossed = totalLines + 1;
   score = 0;
@@ -33,35 +32,43 @@ function initGame() {
   checkpointReached = false;
   scoreBoard.textContent = "Score: 0";
   updatePlayerPosition();
-
-  // load leaderboard when game loads
-  loadLeaderboard();
 }
 
 // -------- START GAME --------
 function startGame() {
   if (gameRunning) return;
   gameRunning = true;
-  playerX = 180;
-  playerY = 790;
-  lastLineCrossed = totalLines + 1;
-  score = 0;
-  goingUp = true;
-  checkpointReached = false;
-  updatePlayerPosition();
-
+  initGame();
   game.classList.add("zoomed");
   moveGuards();
+}
+
+// -------- OPENING START --------
+function startOpening() {
+  document.getElementById("openingScreen").style.display = "none";
+  startGame();
 }
 
 // -------- PLAYER MOVEMENT --------
 document.addEventListener("keydown", (e) => {
   if (!gameRunning) return;
 
-  if (e.key === "ArrowUp" && playerY > 0) playerY -= step;
-  if (e.key === "ArrowDown" && playerY < world.offsetHeight - player.offsetHeight) playerY += step;
-  if (e.key === "ArrowLeft" && playerX > 0) playerX -= step;
-  if (e.key === "ArrowRight" && playerX < game.offsetWidth - player.offsetWidth) playerX += step;
+  if (e.key === "ArrowUp" && playerY > 0) {
+    playerY -= step;
+    playerSprite.className = "Character_spritesheet pixelart face-up";
+  }
+  if (e.key === "ArrowDown" && playerY < world.offsetHeight - player.offsetHeight) {
+    playerY += step;
+    playerSprite.className = "Character_spritesheet pixelart face-down";
+  }
+  if (e.key === "ArrowLeft" && playerX > 0) {
+    playerX -= step;
+    playerSprite.className = "Character_spritesheet pixelart face-left";
+  }
+  if (e.key === "ArrowRight" && playerX < game.offsetWidth - player.offsetWidth) {
+    playerX += step;
+    playerSprite.className = "Character_spritesheet pixelart face-right";
+  }
 
   updatePlayerPosition();
   checkCollision();
@@ -122,6 +129,11 @@ function moveGuards() {
     let gX = parseInt(guard.style.left);
     if (gX >= game.offsetWidth - guard.offsetWidth || gX <= 0) {
       guardDirections[index] *= -1;
+      // flip sprite direction
+      const sprite = guard.querySelector(".Character_spritesheet");
+      sprite.className = guardDirections[index] > 0 
+        ? "Character_spritesheet pixelart face-right" 
+        : "Character_spritesheet pixelart face-left";
     }
     guard.style.left = gX + guardDirections[index] + "px";
   });
@@ -141,7 +153,7 @@ function checkCollision() {
     const gW = guard.offsetWidth;
     const gH = guard.offsetHeight;
 
-    const shrinkX = 6, shrinkY = -2;
+    const shrinkX = 15, shrinkY = 15;
 
     if (!(playerX + pW - shrinkX < gX + shrinkX ||
           playerX + shrinkX > gX + gW - shrinkX ||
@@ -165,10 +177,6 @@ function endGame(message) {
   cancelAnimationFrame(guardAnimation);
   document.getElementById("overlayMessage").textContent = message + ` Final Score: ${score}`;
   document.getElementById("overlay").classList.remove("hidden");
-
-  // Save to API
-  const playerName = prompt("Enter your name:", "Player");
-  saveScore(playerName || "Anonymous", score);
 }
 
 // -------- RESTART --------
@@ -176,41 +184,4 @@ function restartGame() {
   document.getElementById("overlay").classList.add("hidden");
   initGame();
   startGame();
-}
-
-// -------- API FUNCTIONS --------
-
-// Save score
-async function saveScore(name, score) {
-  try {
-    await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, score })
-    });
-    loadLeaderboard();
-  } catch (err) {
-    console.error("❌ Error saving score:", err);
-  }
-}
-
-// Load leaderboard (Top 5 only)
-async function loadLeaderboard() {
-  try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error("Failed to fetch");
-    const data = await res.json();
-
-    if (!Array.isArray(data)) throw new Error("Data is not an array");
-
-    data.sort((a, b) => b.score - a.score);
-
-    const top5 = data.slice(0, 5); // limit to 5
-
-    const leaderboard = document.getElementById("leaderboard");
-    leaderboard.innerHTML = "🏆 Leaderboard<br>" +
-      top5.map(d => `${d.name || "Player"}: ${d.score}`).join("<br>");
-  } catch (err) {
-    console.error("❌ Error loading leaderboard:", err);
-  }
 }
