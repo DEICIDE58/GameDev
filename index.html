@@ -3,59 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Patentero Game</title>
+  <title>Patintero Game</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
-<body onload="initGame()">
-  <h2 style="text-align:center;">Patentero 🏃‍♂️ vs 👮</h2>
+<body onload="  initGame()">
+
+  <!-- Opening Screen -->
+  <div id="openingScreen" class="opening-screen">
+    <div class="opening-content">
+      <h1>Patintero 🏃‍♂️ vs 👮</h1>
+      <p>Dodge the guards, cross the lines, and make it back safely!</p>
+      <p>Use arrow keys (↑ ↓ → ←) to move </p>
+      <button class="start-btn" onclick="startOpening()">Start Game</button>
+    </div>
+  </div>
+
+  <!-- Title & Score -->
+  <h2 style="text-align:center;">Patintero 🏃‍♂️ vs 👮</h2>
   <h3 id="scoreBoard" style="text-align:center;">Score: 0</h3>
-  <div id="leaderboard" style="text-align:center; margin-top:20px;">
-  🏆 Leaderboard<br>Loading...
-</div>
 
-
+  <!-- Game Area -->
   <div class="game-wrapper">
     <div class="game" id="game">
       <div class="world" id="world">
-          <!-- Lines -->
-          <div class="line" style="top:150px;"></div>
-          <div class="line" style="top:300px;"></div>
-          <div class="line" style="top:450px;"></div>
-          <div class="line" style="top:600px;"></div>
-          <div class="line" style="top:750px;"></div>
+        <!-- Lines -->
+        <div class="line" style="top:150px;"></div>
+        <div class="line" style="top:300px;"></div>
+        <div class="line" style="top:450px;"></div>
+        <div class="line" style="top:600px;"></div>
+        <div class="line" style="top:750px;"></div>
 
-          <!-- Player -->
-          <img src="images/player.png" alt="Player" id="player" class="player">
+        <!-- Player -->
+        <div id="player" class="Character" style="left:180px; top:790px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img id="playerSprite" 
+               class="Character_spritesheet pixelart face-down" 
+               src="images\character_sprite.png" />
+        </div>
 
-          <!-- Guards -->
-          <img src="images/guard.png" alt="Guard" class="guard" style="top:107px; left:50px;">
-          <img src="images/guard.png" alt="Guard" class="guard" style="top:257px; left:150px;">
-          <img src="images/guard.png" alt="Guard" class="guard" style="top:407px; left:250px;">
-          <img src="images/guard.png" alt="Guard" class="guard" style="top:557px; left:100px;">
-          <img src="images/guard.png" alt="Guard" class="guard" style="top:707px; left:200px;">
+        <!-- Guards -->
+        <div class="Character guard" style="top:107px; left:50px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img class="Character_spritesheet pixelart face-left" 
+               src="images\character_sprite.png" />
+        </div>
+        <div class="Character guard" style="top:257px; left:150px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img class="Character_spritesheet pixelart face-right" 
+               src="images\character_sprite.png" />
+        </div>
+        <div class="Character guard" style="top:407px; left:250px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img class="Character_spritesheet pixelart face-left" 
+               src="images\character_sprite.png" />
+        </div>
+        <div class="Character guard" style="top:557px; left:100px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img class="Character_spritesheet pixelart face-right" 
+               src="images\character_sprite.png" />
+        </div>
+        <div class="Character guard" style="top:707px; left:200px;">
+          <img class="Character_shadow pixelart" 
+               src="images\character_shadow.png" />
+          <img class="Character_spritesheet pixelart face-left" 
+               src="images\character_sprite.png" />
+        </div>
 
-          <!-- Zones -->
-          <div class="zone start-end" style="top:820px;"></div>
-          <div class="zone checkpoint" style="top:50px;"></div>
+        <!-- Zones -->
+        <div class="zone start-end" style="top:820px;"></div>
+        <div class="zone checkpoint" style="top:50px;"></div>
       </div>
     </div>
   </div>
 
-  <div style="text-align:center; margin-top:10px;">
-    <button onclick="startGame()">Start Game</button>
-  </div>
-
-  <!-- Leaderboard -->
-  <div id="leaderboard" style="text-align:center; margin-top:20px;">
-    <h3>🏆 Leaderboard</h3>
-    <p>Loading...</p>
-  </div>
-
-  <!-- Overlay -->
+  <!-- Overlay (Win / Lose) -->
   <div id="overlay" class="overlay hidden">
     <div class="overlay-content">
       <h2 id="overlayMessage"></h2>
-      <button onclick="restartGame()">Restart</button>
+      <button onclick="restartGame()" class="start-btn">Restart</button>
     </div>
   </div>
 
