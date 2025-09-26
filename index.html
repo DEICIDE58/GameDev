@@ -9,6 +9,10 @@
 <body onload="initGame()">
   <h2 style="text-align:center;">Patentero 🏃‍♂️ vs 👮</h2>
   <h3 id="scoreBoard" style="text-align:center;">Score: 0</h3>
+  <div id="leaderboard" style="text-align:center; margin-top:20px;">
+  🏆 Leaderboard<br>Loading...
+</div>
+
 
   <div class="game-wrapper">
     <div class="game" id="game">
@@ -41,7 +45,13 @@
     <button onclick="startGame()">Start Game</button>
   </div>
 
-  <!-- Overlay for Game Over / Win -->
+  <!-- Leaderboard -->
+  <div id="leaderboard" style="text-align:center; margin-top:20px;">
+    <h3>🏆 Leaderboard</h3>
+    <p>Loading...</p>
+  </div>
+
+  <!-- Overlay -->
   <div id="overlay" class="overlay hidden">
     <div class="overlay-content">
       <h2 id="overlayMessage"></h2>
