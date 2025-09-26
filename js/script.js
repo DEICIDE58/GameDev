@@ -11,7 +11,7 @@ const lineSpacing = 150;       // Distance between lines
 const totalLines = 5;          // Number of lines
 const guardDirections = [2, -2, 2, -2, 2]; // Guard movement speeds
 
-// -------- GAME VARIABLES --------
+// GAME VARIABLES 
 let playerX = 180;
 let playerY;
 let score = 0;
@@ -21,7 +21,7 @@ let goingUp = true;
 let checkpointReached = false;
 let guardAnimation;
 
-// -------- INIT --------
+// -------- INIT 
 function initGame() {
   playerY = 790; 
   lastLineCrossed = totalLines + 1;
