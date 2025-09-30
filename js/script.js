@@ -1,31 +1,32 @@
-// -------- DOM ELEMENTS --------
 const game = document.getElementById("game");
 const world = document.getElementById("world");
 const player = document.getElementById("player");
 const playerSprite = document.getElementById("playerSprite");
 const guards = document.querySelectorAll(".guard");
 const scoreBoard = document.getElementById("scoreBoard");
+const overlay = document.getElementById("overlay");
+const overlayMessage = document.getElementById("overlayMessage");
+const leaderboardEl = document.getElementById("leaderboard");
 
-// -------- CONFIGURATION --------
-const step = 20;               
-const lineSpacing = 150;       
-const totalLines = 5;          
-const guardDirections = [2, -2, 2, -2, 2]; 
+const step = 20;
+const lineSpacing = 150;
+const totalLines = 5;
+const guardDirections = [2, -2, 2, -2, 2];
+const API_URL = "https://68d6429fc2a1754b426a1035.mockapi.io/score";
 
-// GAME VARIABLES 
 let playerX = 180;
 let playerY;
 let score = 0;
 let lastLineCrossed;
 let gameRunning = false;
-let goingUp = true; 
+let goingUp = true;
 let checkpointReached = false;
 let guardAnimation;
 
 // -------- INIT --------
 function initGame() {
   playerX = 180;
-  playerY = 790; 
+  playerY = 790;
   lastLineCrossed = totalLines + 1;
   score = 0;
   goingUp = true;
@@ -50,9 +51,9 @@ function startOpening() {
 }
 
 // -------- PLAYER MOVEMENT --------
+let inputLocked = false; // used to lock input when modal open
 document.addEventListener("keydown", (e) => {
-  if (!gameRunning) return;
-
+  if (!gameRunning || inputLocked) return;
   if (e.key === "ArrowUp" && playerY > 0) {
     playerY -= step;
     playerSprite.className = "Character_spritesheet pixelart face-up";
@@ -69,7 +70,6 @@ document.addEventListener("keydown", (e) => {
     playerX += step;
     playerSprite.className = "Character_spritesheet pixelart face-right";
   }
-
   updatePlayerPosition();
   checkCollision();
   checkWin();
@@ -87,7 +87,8 @@ function updatePlayerPosition() {
 function updateCamera() {
   let offset = playerY - game.offsetHeight / 2 + player.offsetHeight / 2;
   if (offset < 0) offset = 0;
-  if (offset > world.offsetHeight - game.offsetHeight) offset = world.offsetHeight - game.offsetHeight;
+  if (offset > world.offsetHeight - game.offsetHeight)
+    offset = world.offsetHeight - game.offsetHeight;
   world.style.transform = `translateY(-${offset}px)`;
 }
 
@@ -124,20 +125,18 @@ function updateScore() {
 // -------- GUARD MOVEMENT --------
 function moveGuards() {
   if (!gameRunning) return;
-
   guards.forEach((guard, index) => {
     let gX = parseInt(guard.style.left);
     if (gX >= game.offsetWidth - guard.offsetWidth || gX <= 0) {
       guardDirections[index] *= -1;
-      // flip sprite direction
       const sprite = guard.querySelector(".Character_spritesheet");
-      sprite.className = guardDirections[index] > 0 
-        ? "Character_spritesheet pixelart face-right" 
-        : "Character_spritesheet pixelart face-left";
+      sprite.className =
+        guardDirections[index] > 0
+          ? "Character_spritesheet pixelart face-right"
+          : "Character_spritesheet pixelart face-left";
     }
     guard.style.left = gX + guardDirections[index] + "px";
   });
-
   checkCollision();
   guardAnimation = requestAnimationFrame(moveGuards);
 }
@@ -146,19 +145,21 @@ function moveGuards() {
 function checkCollision() {
   const pW = player.offsetWidth;
   const pH = player.offsetHeight;
-
-  guards.forEach(guard => {
+  guards.forEach((guard) => {
     const gX = parseInt(guard.style.left);
     const gY = parseInt(guard.style.top);
     const gW = guard.offsetWidth;
     const gH = guard.offsetHeight;
-
-    const shrinkX = 15, shrinkY = 15;
-
-    if (!(playerX + pW - shrinkX < gX + shrinkX ||
-          playerX + shrinkX > gX + gW - shrinkX ||
-          playerY + pH - shrinkY < gY + shrinkY ||
-          playerY + shrinkY > gY + gH - shrinkY)) {
+    const shrinkX = 15,
+      shrinkY = 15;
+    if (
+      !(
+        playerX + pW - shrinkX < gX + shrinkX ||
+        playerX + shrinkX > gX + gW - shrinkX ||
+        playerY + pH - shrinkY < gY + shrinkY ||
+        playerY + shrinkY > gY + gH - shrinkY
+      )
+    ) {
       endGame("❌ You got tagged! Game Over.");
     }
   });
@@ -175,13 +176,112 @@ function checkWin() {
 function endGame(message) {
   gameRunning = false;
   cancelAnimationFrame(guardAnimation);
-  document.getElementById("overlayMessage").textContent = message + ` Final Score: ${score}`;
-  document.getElementById("overlay").classList.remove("hidden");
+  overlayMessage.textContent = message + ` Final Score: ${score}`;
+  overlay.classList.remove("hidden");
+}
+
+// -------- SUBMIT SCORE --------
+async function submitScore() {
+  const playerName = document.getElementById("playerName").value.trim();
+  if (!playerName) return alert("Enter your name!");
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: playerName, score }),
+    });
+    fetchLeaderboard();
+    document.getElementById("playerName").value = "";
+    overlay.classList.add("hidden"); // ✅ close form after submit
+    restartGame(); // ✅ auto restart after submit
+  } catch (error) {
+    console.error("Error submitting score:", error);
+    alert("Could not submit score. Please try again.");
+  }
+}
+
+// -------- FETCH LEADERBOARD --------
+async function fetchLeaderboard() {
+  try {
+    const res = await fetch(API_URL);
+    const data = await res.json();
+    const sorted = data.sort((a, b) => b.score - a.score).slice(0, 5);
+
+    leaderboardEl.innerHTML = "";
+    sorted.forEach((entry) => {
+      const li = document.createElement("li");
+      li.textContent = `${entry.name}: ${entry.score}`;
+      leaderboardEl.appendChild(li);
+    });
+  } catch (error) {
+    console.error("Error fetching leaderboard:", error);
+    leaderboardEl.innerHTML = "<li>Unable to load leaderboard.</li>";
+  }
 }
 
 // -------- RESTART --------
 function restartGame() {
-  document.getElementById("overlay").classList.add("hidden");
+  overlay.classList.add("hidden");
   initGame();
   startGame();
 }
+
+// -------- AUTO REFRESH LEADERBOARD WHEN MODAL OPEN --------
+let modalWasRunning = false;
+const leaderboardBtn = document.getElementById("leaderboardBtn");
+const leaderboardModal = document.getElementById("leaderboardModal");
+const closeModal = document.getElementById("closeModal");
+
+leaderboardBtn.addEventListener("click", () => {
+  // pause game if running and lock input
+  modalWasRunning = gameRunning;
+  if (gameRunning) {
+    gameRunning = false;
+    cancelAnimationFrame(guardAnimation);
+  }
+  inputLocked = true;
+
+  fetchLeaderboard();
+  leaderboardModal.classList.remove("hidden");
+});
+
+// close handlers
+closeModal.addEventListener("click", () => {
+  leaderboardModal.classList.add("hidden");
+  inputLocked = false;
+  if (modalWasRunning) {
+    gameRunning = true;
+    moveGuards();
+  }
+});
+leaderboardModal.addEventListener("click", (e) => {
+  if (e.target === leaderboardModal) {
+    leaderboardModal.classList.add("hidden");
+    inputLocked = false;
+    if (modalWasRunning) {
+      gameRunning = true;
+      moveGuards();
+    }
+  }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !leaderboardModal.classList.contains("hidden")) {
+    leaderboardModal.classList.add("hidden");
+    inputLocked = false;
+    if (modalWasRunning) {
+      gameRunning = true;
+      moveGuards();
+    }
+  }
+});
+
+// refresh leaderboard every 5s only while modal is open
+setInterval(() => {
+  if (!leaderboardModal.classList.contains("hidden")) {
+    fetchLeaderboard();
+  }
+}, 5000);
+
+// initial leaderboard fetch (does not open modal)
+fetchLeaderboard();
